@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.adpf.tracking.entity.Ick;
+import com.adpf.tracking.entity.TApp;
 import com.adpf.tracking.entity.TAppLogin;
 import com.adpf.tracking.entity.TAppOrder;
 import com.adpf.tracking.entity.TAppPay;
@@ -30,7 +31,9 @@ import com.adpf.tracking.repository.TAppLoginRepository;
 import com.adpf.tracking.repository.TAppOrderRepository;
 import com.adpf.tracking.repository.TAppPayRepository;
 import com.adpf.tracking.repository.TAppRegisterRepository;
+import com.adpf.tracking.repository.TAppRepository;
 import com.adpf.tracking.repository.TAppStartupRepository;
+import com.adpf.tracking.tools.AESTool;
 import com.adpf.tracking.tools.util;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
@@ -53,9 +56,11 @@ public class open {
     private TAppPayRepository TAppPayRepository;
     @Autowired
     private TAppOrderRepository TAppOrderRepository;
+    @Autowired
+    private TAppRepository TAppRepository;
     
-    @Value("${app.secretkey}")
-    private String secretkey;
+//    @Value("${app.secretkey}")
+//    private String secretkey;
 	
 	@RequestMapping(value="/getAppInfo",method=RequestMethod.POST)	
 	public JSONObject getAppInfo(HttpServletRequest request, @RequestBody Map<String, Object> params){
@@ -64,13 +69,19 @@ public class open {
 		//String dnContext = util.AESDncode("0123456789012345", MapUtils.getString(params, "context"));
 		try {
 			String what = MapUtils.getString(params, "what");
-			System.out.println("........"+what);
+			System.out.println("........"+what);			
+			String secretkey = TAppRepository.findOne(MapUtils.getLong(params, "appid")).getAppKey();
 			System.out.println("........"+secretkey);
 			System.out.println(MapUtils.getString(params, "context"));
-			String dnContext = util.AESDncode(secretkey.trim(), MapUtils.getString(params, "context"));
+			//String dnContext = util.AESDncode(secretkey.trim(), MapUtils.getString(params, "context"));
+			byte[] decryptFrom = AESTool.parseHexStr2Byte(MapUtils.getString(params, "context"));
+			byte[] decryptResult = AESTool.decrypt(decryptFrom, secretkey.trim());
+			String dnContext = new String(decryptResult);
 			System.out.println(dnContext);
 			Map<String, Object> contextMap = JSONObject.parseObject(dnContext);
-			Map<String, Object>mapEntity = new HashMap<String, Object>();						
+			Map<String, Object>mapEntity = new HashMap<String, Object>();
+			
+			
 			mapEntity.put("when1", params.get("when"));
 			mapEntity.put("appId", params.get("appid"));
 			mapEntity.put("appKey", params.get("appkey"));
@@ -107,7 +118,7 @@ public class open {
 				mapEntity.put("orderId", contextMap.get("_orderid"));
 				mapEntity.put("payType", contextMap.get("_paytype"));
 				//mapEntity.put("currencyType", contextMap.get("_currencytype"));
-				mapEntity.put("free", contextMap.get("_fee"));
+				mapEntity.put("fee", contextMap.get("_fee"));
 				TAppOrder tAppOrder =(TAppOrder) BeanUtils.mapToBean(mapEntity, TAppOrder.class);
 				TAppOrderRepository.save(tAppOrder);
 			}else {
