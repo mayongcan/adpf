@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.adpf.modules.gdtm.util.StringUtils;
 import com.adpf.tracking.entity.Ick;
 import com.adpf.tracking.entity.TApp;
 import com.adpf.tracking.entity.TAppLogin;
@@ -68,6 +69,7 @@ public class open {
 		JSONObject json = new JSONObject();
 		//String dnContext = util.AESDncode("0123456789012345", MapUtils.getString(params, "context"));
 		try {
+			
 			String what = MapUtils.getString(params, "what");
 			System.out.println("........"+what);			
 			String secretkey = TAppRepository.findOne(MapUtils.getLong(params, "appid")).getAppKey();
@@ -81,14 +83,22 @@ public class open {
 			Map<String, Object> contextMap = JSONObject.parseObject(dnContext);
 			Map<String, Object>mapEntity = new HashMap<String, Object>();
 			
-			
+			//获取ip
+			String ip = request.getHeader("x-forwarded-for");
+			if(!StringUtils.isEmpty(ip) && !"unKnown".equalsIgnoreCase(ip)){
+				 int index = ip.indexOf(",");
+				 if (index != -1){
+					 ip = ip.substring(0, index);
+				 }
+			}
+			mapEntity.put("ip",ip);
 			mapEntity.put("when1", params.get("when"));
 			mapEntity.put("appId", params.get("appid"));
 			mapEntity.put("appKey", params.get("appkey"));
 			mapEntity.put("appType", params.get("apptype"));
 			mapEntity.put("androidId",contextMap.get("_androidid"));
 			mapEntity.put("idfa",contextMap.get("_idfa"));
-			mapEntity.put("ip",contextMap.get("_ip"));
+			//mapEntity.put("ip",contextMap.get("_ip"));			
 			mapEntity.put("imei",contextMap.get("_imei"));
 			mapEntity.put("accountId",contextMap.get("_accountid"));
 			mapEntity.put("createTime",new Date());

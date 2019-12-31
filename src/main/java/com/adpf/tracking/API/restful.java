@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.adpf.modules.gdtm.util.StringUtils;
 import com.adpf.tracking.entity.Ick;
 import com.adpf.tracking.entity.TPromo;
 import com.adpf.tracking.repository.IckRepository;
@@ -84,13 +85,22 @@ public class restful {
 		
 		//String referrer = request.getHeader("Referer");
         //System.out.println(referrer);
-        String remoteAddr = request.getRemoteAddr();
+        /*String remoteAddr = request.getRemoteAddr();
         if(remoteAddr.equals("0:0:0:0:0:0:0:1")){
             System.out.println("您的ip地址为：127.0.0.1");
         }else{
             System.out.println("您的ip地址为：" + remoteAddr);
-        }
-        params.put("ip", remoteAddr);
+        }*/
+		String ip = request.getHeader("x-forwarded-for");
+		if(!StringUtils.isEmpty(ip) && !"unKnown".equalsIgnoreCase(ip)){
+			 int index = ip.indexOf(",");
+			 if (index != -1){
+				 ip = ip.substring(0, index);
+			 }
+		}
+
+		
+        params.put("ip", ip);
         
         
         String requestHeader = request.getHeader("User-Agent");
@@ -124,6 +134,9 @@ public class restful {
 
 		
 	}
+	
+	
+
 	
 
 }

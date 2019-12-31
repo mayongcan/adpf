@@ -15,8 +15,8 @@ import com.adpf.tracking.repository.custom.TAppStartupRepositoryCustom;
 
 public class TAppStartupRepositoryImpl extends BaseRepository implements TAppStartupRepositoryCustom{
 
-	private static final String SQL_GET_LIST = "SELECT tb.id as \"id\", tb.when1 as \"when1\", tb.app_key as \"appKey\", tb.app_id as \"appId\", tb.app_type as \"appType\", tb.android_id as \"androidId\", tb.idfa as \"idfa\", tb.ip as \"ip\", tb.ua as \"ua\", tb.imei as \"imei\", tb.mac as \"mac\", tb.account_id as \"accountId\", tb.create_time as \"createTime\" "
-			+ "FROM t_app_startup tb "
+	private static final String SQL_GET_LIST = "SELECT tb.id as \"id\", tb.when1 as \"when1\", tb.app_key as \"appKey\", tb.app_id as \"appId\", tb.app_type as \"appType\", tb.android_id as \"androidId\", tb.idfa as \"idfa\", tb.ip as \"ip\", tb.ua as \"ua\", tb.imei as \"imei\", tb.mac as \"mac\", tb.account_id as \"accountId\", tb.create_time as \"createTime\",ta.name as \"name\" "
+			+ "FROM t_app_startup tb LEFT JOIN  t_app ta ON tb.app_id = ta.id "
 			+ "WHERE 1 = 1 ";
 
 	private static final String SQL_GET_LIST_COUNT = "SELECT count(1) as \"count\" "
@@ -46,6 +46,16 @@ public class TAppStartupRepositoryImpl extends BaseRepository implements TAppSta
 	private SqlParams genListWhere(String sql, TAppStartup tAppStartup, Map<String, Object> params){
 		SqlParams sqlParams = new SqlParams();
 		sqlParams.querySql.append(sql);
+		if (tAppStartup != null && !StringUtils.isBlank(tAppStartup.getIp())) {
+			sqlParams.querySql.append(" AND tb.ip = :ip ");
+			sqlParams.paramsList.add("ip");
+			sqlParams.valueList.add(tAppStartup.getIp());
+		}
+		if (tAppStartup != null && !StringUtils.isBlank(tAppStartup.getImei())) {
+			sqlParams.querySql.append(" AND tb.imei = :imei ");
+			sqlParams.paramsList.add("imei");
+			sqlParams.valueList.add(tAppStartup.getImei());
+		}
         return sqlParams;
 	}
 }

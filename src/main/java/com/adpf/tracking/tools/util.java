@@ -14,8 +14,7 @@ import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 
-import sun.misc.BASE64Decoder;
-import sun.misc.BASE64Encoder;
+
 
 public class util {
 	
@@ -60,7 +59,9 @@ public class util {
             //这里用Base64Encoder中会找不到包
             //解决办法：
             //在项目的Build path中先移除JRE System Library，再添加库JRE System Library，重新编译后就一切正常了。
-            String AES_encode=new String(new BASE64Encoder().encode(byte_AES));
+            //String AES_encode=new String(new BASE64Encoder().encode(byte_AES));
+            //String AES_encode=Base64.getMimeEncoder().encodeToString(byte_AES);
+            String AES_encode = com.adpf.tracking.tools.Base64.encodeToString(byte_AES,com.adpf.tracking.tools.Base64.NO_WRAP);
           //11.将字符串返回
             return AES_encode;
         } catch (NoSuchAlgorithmException e) {
@@ -108,7 +109,9 @@ public class util {
               //7.初始化密码器，第一个参数为加密(Encrypt_mode)或者解密(Decrypt_mode)操作，第二个参数为使用的KEY
             cipher.init(Cipher.DECRYPT_MODE, key);
             //8.将加密并编码后的内容解码成字节数组
-            byte [] byte_content= new BASE64Decoder().decodeBuffer(content);
+            //byte [] byte_content= new BASE64Decoder().decodeBuffer(content);
+            //byte [] byte_content= Base64.getDecoder().decode(content);
+            byte [] byte_content= com.adpf.tracking.tools.Base64.decode(content, com.adpf.tracking.tools.Base64.NO_WRAP);
             /*
              * 解密
              */
@@ -133,22 +136,39 @@ public class util {
         return null;         
     }
     
-     public static String usingMath(int length) {
+    public static String usingMath(int length) {
         String alphabetsInUpperCase = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
         String alphabetsInLowerCase = "abcdefghijklmnopqrstuvwxyz";
         String numbers = "0123456789";
-        // create a super set of all characters
+        
         String allCharacters = alphabetsInLowerCase + alphabetsInUpperCase + numbers;
-        // initialize a string to hold result
+        
         StringBuffer randomString = new StringBuffer();
-        // loop for 10 times
+        
         for (int i = 0; i < length; i++) {
-            // generate a random number between 0 and length of all characters
-            int randomIndex = (int)(Math.random() * allCharacters.length());
-            // retrieve character at index and add it to result
-            randomString.append(allCharacters.charAt(randomIndex));
-        }
+          
+          int randomIndex = (int)(Math.random() * allCharacters.length());
+          
+          randomString.append(allCharacters.charAt(randomIndex));
+        } 
         return randomString.toString();
-    }
+      }
+    
+     
+     
+     public static void main(String[] args) {
+    	 util uu = new util();
+    	 String encodeRules="c172XMDjfu2WVRQK";//秘钥 
+    	 String jf = "123456";
+    	 String aa = "{\"_deviceid\":\"008796763511690\",\"_androidid\":\"008796763511690\",\"_ip\":\"10.0.3.15\",\"_imei\":\"008796763511690\",\"_accountid\":\"2333\",\"_orderid\":\"\",\"_paytype\":\"\",\"_currencytyp\":\"CNY\",\"_fee\":0}";
+    	 String content = "U2FsdGVkX191GL967JJWYbTGwrF2SglMDwYIlXyNj8aZCN+cdam6NhIqqZ5WOPrxeAi2UPQve7x0WoI9KdwBQ7v41bsEyxsRFblU+l/Jw0mrS133tBkUQkN/cGgikoK8FZsi05lEGxqHMhoxQVWfL5GiCq7NondRJfEELHorNhZ9ACqTAkwscW+XHTfvf9xq66NL7JHZnk2ODURDHDRs7PiRe6N5nnTrWTh9FPlL4Quw9VuMy1CNg1lCn8/ZJZfOO8urrmW4ZfB9vRXcuMintw==";
+    	 //String bb = "853bpSVKzGU0WvylsJGt1cQiEMkXdNhmgacc/N53lJTb+gOAa2AURmb0p+oL38722PlFHCSg3bhm8glLtHfl3VqFkhRtjvgCJpaP5wvtrMg9iva28pCPoCw0aNnzxa7K/ylCeH1dnXc6Q4ZD2nYK3VSzGwOfyJ+sJZbtpw1S3JsunxyC9pj8y6D7/6GWfcDVAg372+Qtty0/NFpJsI5m+PQ0PLQyf6KuCtscJaUjdlEiD2er17oEq9Yq4SjbH18Y";
+    	 String bb = "H/H47MFAc1HnyCD+JwgcJPyBiU100KpLkoXHytsWWRImlkQfau5M8Z6giMwJINOdqOfq7JG9xOGEi59H19I0QBBkSjjcunV/d15wDkw7tYpX8S9ZHk0BR2RR4bIGNkMDSzSqKqj3S2rfZ/sxYrvCk7USKl8kQQYj5zLpdYi+5FRkLHpWDD81w1mihopXCbYF3dNmVYApnMOaMVQs28iDNDt0+i5nT1h++7AutlaDM8tQZNt+duekb6SGnx/XWS1m";
+    	 System.out.println(uu.AESEncode(encodeRules, jf));
+    	 //System.out.println(uu.AESDncode(encodeRules, bb));
+    	 
+    	 
+    	
+     }
 
 }
