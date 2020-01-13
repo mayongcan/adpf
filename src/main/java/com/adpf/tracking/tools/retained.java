@@ -80,10 +80,15 @@ public class retained {
 		
 		//统计自然量
 		TPromoCurrRepository.insertNature(ctime);
-		TPromoCurrRepository.updateNaPromoActive(ctime);
+		System.out.println("...............................12");
+		TPromoCurrRepository.updateNaPromoActiveDis(ctime);
+		System.out.println("...............................13");
 		TPromoCurrRepository.updateNaPromoRegister(ctime);
+		System.out.println("...............................14");
 		TPromoCurrRepository.updateNaPromoLogin(ctime);
+		System.out.println("...............................15");
 		TPromoCurrRepository.updateNaPromoAllPay(ctime);
+		System.out.println("...............................16");
 		
 		
 

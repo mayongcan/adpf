@@ -38,7 +38,7 @@ public interface TPromoCurrRepository extends JpaRepository<TPromoCurr, Long>, J
 	//注册表更新归因推广活动id，归因时间
 	@Transactional
 	@Modifying(clearAutomatically = true)
-	@Query(value ="UPDATE t_app_register a,t_click b,(SELECT MIN(t_click.create_time) as \"min_tiem\" ,t_click.ip FROM t_app_register LEFT JOIN t_click ON CASE WHEN t_app_register.imei IS NOT NULL THEN t_click.imei = t_app_register.imei ELSE t_click.ip = t_app_register.ip END GROUP BY t_app_register.ip )as c \n" +
+	@Query(value ="UPDATE t_app_register a,t_click b,(SELECT MIN(t_click.create_time) as \"min_tiem\" ,t_click.ip FROM t_click LEFT JOIN t_app_register ON CASE WHEN t_app_register.imei IS NOT NULL THEN t_click.imei = t_app_register.imei ELSE t_click.ip = t_app_register.ip END GROUP BY t_click.ip )as c \n" +
 			"set a.attribution_promo_id = b.promo_id,a.attribution_time = DATE_FORMAT(:dateTime,'%y-%m-%d %H:%i'),b.attribution_time = DATE_FORMAT(:dateTime,'%y-%m-%d %H:%i')\n" +
 			" WHERE CASE WHEN a.imei is NOT NULL AND b.imei is NOT NULL THEN a.imei = b.imei ELSE a.ip = b.ip END AND b.create_time = c.min_tiem AND b.ip = c.ip AND a.when1 BETWEEN date_add(:dateTime, interval - 5 minute) AND :dateTime ;" ,nativeQuery = true)
 	public  void updateAppRegister(@Param("dateTime")String dateTime);
@@ -154,9 +154,9 @@ public interface TPromoCurrRepository extends JpaRepository<TPromoCurr, Long>, J
 	public void insertNature(@Param("dateTime")String dateTime);
 	
 	//更新排重激活设备数，当天激活且排重设备数
-		@Transactional
+		/*@Transactional
 		@Modifying(clearAutomatically = true)
-		@Query(value = "UPDATE t_promo_curr a,(SELECT COUNT(DISTINCT tas.ip) as 'active_distinct',COUNT(IF(tar.ip =NULL,0,tar.ip)) as 'active_register',tas.attribution_promo_id as 'attribution_promo_id',tas.attribution_time as 'attribution_time' \n" +
+		@Query(value = "UPDATE t_promo_curr a,(SELECT COUNT(DISTINCT tas.ip) as 'active_distinct',COUNT(IF(tar.ip is NULL,0,tar.ip)) as 'active_register',tas.attribution_promo_id as 'attribution_promo_id',tas.attribution_time as 'attribution_time' \n" +
 				"FROM t_app_startup tas LEFT JOIN t_app_register tar\n" +
 				"ON DATE_FORMAT(tas.when1,'%y-%m-%d') = DATE_FORMAT(tar.when1,'%y-%m-%d')\n" +
 				"and tar.ip = tas.ip and tar.imei = tas.imei\n" +
@@ -164,7 +164,33 @@ public interface TPromoCurrRepository extends JpaRepository<TPromoCurr, Long>, J
 				"AND tas.attribution_promo_id is null) as b\n" +
 				"SET a.active_distinct = b.active_distinct,a.active_register = b.active_register\n" +
 				"WHERE a.promo_id = 0 AND a.ods_time = DATE_FORMAT(:dateTime,'%y-%m-%d %H:%i') ",nativeQuery = true)
-		public void updateNaPromoActive(@Param("dateTime")String dateTime);
+		public void updateNaPromoActive(@Param("dateTime")String dateTime);*/
+	
+	//更新排重激活设备数，当天激活且注册设备数
+			@Transactional
+			@Modifying(clearAutomatically = true)
+			@Query(value = "UPDATE t_promo_curr a,(SELECT COUNT(DISTINCT tas.ip) as 'active_distinct',tas.attribution_promo_id as 'attribution_promo_id',tas.attribution_time as 'attribution_time' \n" +
+					"FROM t_app_startup tas \n" +
+					"WHERE tas.when1 between date_add(:dateTime, interval - 5 minute) and :dateTime \n" +
+					"AND tas.attribution_promo_id is null) as b \n" +
+					"SET a.active_distinct = b.active_distinct \n" +
+					"WHERE a.promo_id = 0 AND a.ods_time = DATE_FORMAT(:dateTime,'%y-%m-%d %H:%i') ",nativeQuery = true)
+			public void updateNaPromoActiveDis(@Param("dateTime")String dateTime);
+//			
+//					@Transactional
+//			@Modifying(clearAutomatically = true)
+//			@Query(value = "UPDATE t_promo_curr a,(SELECT COUNT(IF(tar.ip =NULL,0,tar.ip)) as 'active_register',tas.attribution_promo_id as 'attribution_promo_id',tas.attribution_time as 'attribution_time' \n" +
+//					"FROM t_app_startup tas LEFT JOIN t_app_register tar\n" +
+//					"ON DATE_FORMAT(tas.when1,'%y-%m-%d') = DATE_FORMAT(tar.when1,'%y-%m-%d')\n" +
+//					"and tar.ip = tas.ip and tar.imei = tas.imei\n" +
+//					"WHERE tas.when1 between date_add(:dateTime, interval - 5 minute) and :dateTime \n" +
+//					"AND tas.attribution_promo_id is null) as b\n" +
+//					"SET a.active_distinct = b.active_distinct,a.active_register = b.active_register\n" +
+//					"WHERE a.promo_id = 0 AND a.ods_time = DATE_FORMAT(:dateTime,'%y-%m-%d %H:%i') ",nativeQuery = true)
+//			public void updateNaPromoActive(@Param("dateTime")String dateTime);
+			
+		
+		
 		
 		//更新按天排重注册设备数，排重注册设备数
 		@Transactional
