@@ -40,7 +40,7 @@ public interface TPromoCurrRepository extends JpaRepository<TPromoCurr, Long>, J
 	@Modifying(clearAutomatically = true)
 	@Query(value ="UPDATE t_app_register a,t_click b,(SELECT MIN(t_click.create_time) as \"min_tiem\" ,t_click.ip FROM t_app_register LEFT JOIN t_click ON CASE WHEN t_app_register.imei IS NOT NULL THEN t_click.imei = t_app_register.imei ELSE t_click.ip = t_app_register.ip END GROUP BY t_app_register.ip )as c \n" +
 			"set a.attribution_promo_id = b.promo_id,a.attribution_time = DATE_FORMAT(:dateTime,'%y-%m-%d %H:%i'),b.attribution_time = DATE_FORMAT(:dateTime,'%y-%m-%d %H:%i')\n" +
-			" WHERE CASE WHEN a.imei is NOT NULL THEN a.imei = b.imei ELSE a.ip = b.ip END AND b.create_time = c.min_tiem AND b.ip = c.ip AND a.when1 BETWEEN date_add(:dateTime, interval - 5 minute) AND :dateTime ;" ,nativeQuery = true)
+			" WHERE CASE WHEN a.imei is NOT NULL AND b.imei is NOT NULL THEN a.imei = b.imei ELSE a.ip = b.ip END AND b.create_time = c.min_tiem AND b.ip = c.ip AND a.when1 BETWEEN date_add(:dateTime, interval - 5 minute) AND :dateTime ;" ,nativeQuery = true)
 	public  void updateAppRegister(@Param("dateTime")String dateTime);
 	
 	
@@ -49,7 +49,7 @@ public interface TPromoCurrRepository extends JpaRepository<TPromoCurr, Long>, J
 	@Modifying(clearAutomatically = true)
 	@Query(value ="UPDATE t_app_login a,t_click b,(SELECT MIN(t_click.create_time) as \"min_tiem\" ,t_click.ip FROM t_click LEFT JOIN t_app_login ON CASE WHEN t_app_login.imei IS NOT NULL THEN t_click.imei = t_app_login.imei ELSE t_click.ip = t_app_login.ip END GROUP BY t_click.ip )as c \n" +
 				"set a.attribution_promo_id = b.promo_id,a.attribution_time = DATE_FORMAT(:dateTime,'%y-%m-%d %H:%i'),b.attribution_time = DATE_FORMAT(:dateTime,'%y-%m-%d %H:%i')\n" +
-				" WHERE CASE WHEN a.imei is NOT NULL THEN a.imei = b.imei ELSE a.ip = b.ip END AND b.create_time = c.min_tiem AND b.ip = c.ip AND a.when1 BETWEEN date_add(:dateTime, interval - 5 minute) AND :dateTime ;" ,nativeQuery = true)
+				" WHERE CASE WHEN a.imei is NOT NULL AND b.imei is NOT NULL THEN a.imei = b.imei ELSE a.ip = b.ip END AND b.create_time = c.min_tiem AND b.ip = c.ip AND a.when1 BETWEEN date_add(:dateTime, interval - 5 minute) AND :dateTime ;" ,nativeQuery = true)
 	public  void updateAppLogin(@Param("dateTime")String dateTime);
 	
 	
@@ -60,7 +60,7 @@ public interface TPromoCurrRepository extends JpaRepository<TPromoCurr, Long>, J
 	@Modifying(clearAutomatically = true)
 	@Query(value="UPDATE t_app_pay a,t_click b,(SELECT MIN(t_click.create_time) as \"min_tiem\" ,t_click.ip FROM t_click LEFT JOIN t_app_pay ON CASE WHEN t_app_pay.imei IS NOT NULL THEN t_click.imei = t_app_pay.imei ELSE t_click.ip = t_app_pay.ip END GROUP BY t_click.ip)as c \n" +
 			"set a.attribution_promo_id = b.promo_id,a.attribution_time = DATE_FORMAT(:dateTime,'%y-%m-%d %H:%i')\n" +
-			" WHERE CASE WHEN a.imei is NOT NULL THEN a.imei = b.imei ELSE a.ip = b.ip END AND b.create_time = c.min_tiem AND b.ip = c.ip AND a.when1 BETWEEN date_add(:dateTime, interval - 5 minute) AND :dateTime ;" ,nativeQuery = true)
+			" WHERE CASE WHEN a.imei is NOT NULL AND b.imei is NOT NULL THEN a.imei = b.imei ELSE a.ip = b.ip END AND b.create_time = c.min_tiem AND b.ip = c.ip AND a.when1 BETWEEN date_add(:dateTime, interval - 5 minute) AND :dateTime ;" ,nativeQuery = true)
 	public void updateAppPay(@Param("dateTime")String dateTime);
 	
 	//激活表更新归因推广活动id，归因时间
@@ -68,7 +68,7 @@ public interface TPromoCurrRepository extends JpaRepository<TPromoCurr, Long>, J
 	@Transactional
 	@Modifying(clearAutomatically = true)
 	@Query(value = "UPDATE t_app_startup a,t_click b\n" +
-			"set a.attribution_promo_id = b.promo_id,a.attribution_time = DATE_FORMAT(:dateTime,'%y-%m-%d %H:%i'),b.attribution_time = DATE_FORMAT(:dateTime,'%y-%m-%d %H:%i') where CASE WHEN a.imei is NOT NULL THEN a.imei = b.imei ELSE a.ip = b.ip END  AND a.when1 BETWEEN date_add(:dateTime, interval - 5 minute) AND :dateTime ;",nativeQuery = true)
+			"set a.attribution_promo_id = b.promo_id,a.attribution_time = DATE_FORMAT(:dateTime,'%y-%m-%d %H:%i'),b.attribution_time = DATE_FORMAT(:dateTime,'%y-%m-%d %H:%i') where CASE WHEN a.imei is NOT NULL AND b.imei is NOT NULL THEN a.imei = b.imei ELSE a.ip = b.ip END  AND a.when1 BETWEEN date_add(:dateTime, interval - 5 minute) AND :dateTime ;",nativeQuery = true)
 	public void updateAppStartup(@Param("dateTime")String dateTime) ;
 	
 	
