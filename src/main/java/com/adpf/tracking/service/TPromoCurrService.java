@@ -52,5 +52,7 @@ public interface TPromoCurrService {
 	
 	public JSONObject getEquipment(Map<String, Object> params);
 	
+	public JSONObject getNature(Pageable page, TPromoCurr tPromoCurr, Map<String, Object> params);
+	
 
 }

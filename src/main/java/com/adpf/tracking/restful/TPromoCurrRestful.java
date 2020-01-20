@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.gimplatform.core.entity.UserInfo;
 import com.gimplatform.core.utils.BeanUtils;
@@ -146,6 +147,38 @@ public class TPromoCurrRestful {
 			if(userInfo == null) json = RestfulRetUtils.getErrorNoUser();
 			else {											
 				json = tPromoCurrService.getEquipment(params);
+			}
+		}catch(Exception e){
+			json = RestfulRetUtils.getErrorMsg("51001","获取列表失败");
+			logger.error(e.getMessage(), e);
+		}
+		return json;
+	}
+	
+	@RequestMapping(value="/getNature",method=RequestMethod.GET)
+	public JSONObject getNature(HttpServletRequest request, @RequestParam Map<String, Object> params){
+		JSONObject json = new JSONObject();
+		try{
+			UserInfo userInfo = SessionUtils.getUserInfo();
+			if(userInfo == null) json = RestfulRetUtils.getErrorNoUser();
+			else {
+				Pageable pageable = new PageRequest(SessionUtils.getPageIndex(request), SessionUtils.getPageSize(request));  
+				TPromoCurr tPromoCurr = (TPromoCurr)BeanUtils.mapToBean(params, TPromoCurr.class);				
+				json = tPromoCurrService.getNature(pageable, tPromoCurr, params);
+				//Iterator iter = jsonInfo.entrySet().iterator();
+				/*Iterator iter = json.entrySet().iterator();
+				while (iter.hasNext()) {
+		            Map.Entry entry = (Map.Entry) iter.next();
+		            System.out.println(entry.getKey().toString());
+		            System.out.println(entry.getValue().toString());
+		        }*/
+				
+				
+				
+				
+				
+				
+		
 			}
 		}catch(Exception e){
 			json = RestfulRetUtils.getErrorMsg("51001","获取列表失败");

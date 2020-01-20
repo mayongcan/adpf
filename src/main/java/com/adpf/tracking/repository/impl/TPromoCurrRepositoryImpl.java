@@ -28,13 +28,9 @@ public class TPromoCurrRepositoryImpl extends BaseRepository implements TPromoCu
 	+ " FROM t_promo_curr tb "
 	+ " WHERE 1 = 1 ";*/
 	
-	private static final String SQL_GET_LIST_COUNT = "SELECT count(1) as \"count\" from " +
-			"(SELECT promo_id,channel_id,app_id,DATE_FORMAT(ods_time, '%y-%m-%d') AS 'odsTime',SUM(click) as 'click',sum(click_valid) as 'click_valid',SUM(click_distinct) as 'click_distinct',SUM(click_distinct_day) as 'click_distinct_day',\n" +
-			"SUM(active_distinct) AS 'active_distinct',SUM(active_register) as \"active_register\",SUM(register_distinct)as 'register_distinct',SUM(register_distinct_day)as 'register_distinct_day',SUM(login_day)as 'login_day',\n" +
-			"SUM(new_fee)as 'new_fee',SUM(pay_device)as 'pay_device',SUM(total_fee)as 'total_fee',SUM(total_pay_device)as 'total_pay_device' FROM t_promo_curr GROUP BY promo_id,odsTime) tb\n" +
-			"LEFT JOIN (SELECT count(CASE WHEN login_count = 1 THEN TRUE ELSE NULL END) AS 'd1',promo_id,DATE_FORMAT(last_login_time, '%y-%m-%d') AS 'time',login_count FROM t_retained trd LEFT JOIN t_click tck ON trd.ip = tck.ip AND trd.imei = tck.imei GROUP BY promo_id,time,trd.login_count) tt\n" +
-			"ON tb.promo_id = tt.promo_id AND tb.odsTime = tt.time "
-			+"where 1=1 ";
+	private static final String SQL_GET_LIST_COUNT = "SELECT DATE_FORMAT(tb.ods_time,'%y-%m-%d') as \"odsTime\",tb.promo_id as \"promoId\",tb.channel_id as \"channelId\" FROM \n" +			
+			"t_promo_curr tb where tb.promo_id > 0 and  1=1 ";
+			
 		
 	
 	private static final String SQL_GET_LIST ="SELECT tt.time ,tt.promo_id,tt.agent_id,tt.channel_id,SUM(tt.sum_click) AS \"click\",SUM(tt.sum_click_valid) AS \"clickValid\",SUM(tt.sum_click_distinct) AS \"clickDistinct\",SUM(tt.sum_click_distinct_day) AS \"clickDistinctDay\"," 
@@ -47,15 +43,20 @@ public class TPromoCurrRepositoryImpl extends BaseRepository implements TPromoCu
 			+"FROM t_retained GROUP BY app_id ) ttd ON tt.app_id = ttd.app_id "
 			+"where 1=1 ";
 	
-	private static final String SQL_GET_PROMO_CURR = "SELECT tb.promo_id as \"promoId\",tb.channel_id as \"channelId\",tb.agent_id as \"agentId\",tb.app_id as \"appId\",tb.odsTime as \"odsTime\",sum(tb.click) as \"click\",sum(tb.click_valid) as \"clickValid\",sum(tb.click_distinct) as \"clickDistinct\" ,sum(tb.click_distinct_day) AS \"clickDistinctDay\",sum(tb.active_distinct) as \"activeDistinct\" ,sum(tb.active_register) as \"activeRegister\",sum(tb.register_distinct) as \"registerDistinct\",sum(tb.register_distinct_day) as \"registerDistinctDay\",sum(tb.login_day) as \"loginDay\",sum(tb.new_fee) as \"newFee\",sum(tb.pay_device) as \"payDevice\",sum(tb.total_fee) as \"totalFee\",sum(tb.total_pay_device) as \"totalPayDevice\",sum(tt.d1) as \"D1\",sum(tt.d2) as \"D2\",sum(tt.d7) as \"D7\",sum(tt.d30) as \"D30\",tpo.name as \"promoName\",tcl.name as \"channelName\",tat.name as \"agentName\",tap.name as \"appName\" FROM \n" +
+	/*private static final String SQL_GET_PROMO_CURR = "SELECT tb.promo_id as \"promoId\",tb.channel_id as \"channelId\",tb.agent_id as \"agentId\",tb.app_id as \"appId\",tb.odsTime as \"odsTime\",sum(tb.click) as \"click\",sum(tb.click_valid) as \"clickValid\",sum(tb.click_distinct) as \"clickDistinct\" ,sum(tb.click_distinct_day) AS \"clickDistinctDay\",sum(tb.active_distinct) as \"activeDistinct\" ,sum(tb.active_register) as \"activeRegister\",sum(tb.register_distinct) as \"registerDistinct\",sum(tb.register_distinct_day) as \"registerDistinctDay\",sum(tb.login_day) as \"loginDay\",sum(tb.new_fee) as \"newFee\",sum(tb.pay_device) as \"payDevice\",sum(tb.total_fee) as \"totalFee\",sum(tb.total_pay_device) as \"totalPayDevice\",sum(tt.d1) as \"D1\",sum(tt.d2) as \"D2\",sum(tt.d7) as \"D7\",sum(tt.d30) as \"D30\",tpo.name as \"promoName\",tcl.name as \"channelName\",tat.name as \"agentName\",tap.name as \"appName\" FROM \n" +
 			"(SELECT promo_id,channel_id,agent_id,app_id,DATE_FORMAT(ods_time, '%y-%m-%d') AS 'odsTime',SUM(click) as 'click',sum(click_valid) as 'click_valid',SUM(click_distinct) as 'click_distinct',SUM(click_distinct_day) as 'click_distinct_day',\n" +
 			"SUM(active_distinct) AS 'active_distinct',SUM(active_register) as \"active_register\",SUM(register_distinct)as 'register_distinct',SUM(register_distinct_day)as 'register_distinct_day',SUM(login_day)as 'login_day',\n" +
 			"SUM(new_fee)as 'new_fee',SUM(pay_device)as 'pay_device',SUM(total_fee)as 'total_fee',SUM(total_pay_device)as 'total_pay_device' FROM t_promo_curr GROUP BY promo_id,odsTime) tb\n" +
 			"LEFT JOIN (SELECT count(CASE WHEN login_count = 1 THEN TRUE ELSE NULL END) AS 'd1',count(CASE WHEN login_count = 2 THEN TRUE ELSE NULL END) AS 'd2',count(CASE WHEN login_count = 7 THEN TRUE ELSE NULL END) AS 'd7',count(CASE WHEN login_count = 30 THEN TRUE ELSE NULL END) AS 'd30',promo_id,DATE_FORMAT(last_login_time, '%y-%m-%d') AS 'time',login_count FROM t_retained trd LEFT JOIN t_click tck ON trd.ip = tck.ip AND trd.imei = tck.imei GROUP BY promo_id,time,trd.login_count) tt\n" +
-			"ON tb.promo_id = tt.promo_id AND tb.odsTime = tt.time LEFT JOIN t_promo tpo ON tb.promo_id = tpo.id LEFT JOIN t_channelurl tcl ON tb.channel_id = tcl.id LEFT JOIN t_agent tat ON tb.agent_id = tat.id LEFT JOIN t_app tap ON tb.app_id = tap.id  where 1=1 ";
+			"ON tb.promo_id = tt.promo_id AND tb.odsTime = tt.time LEFT JOIN t_promo tpo ON tb.promo_id = tpo.id LEFT JOIN t_channelurl tcl ON tb.channel_id = tcl.id LEFT JOIN t_agent tat ON tb.agent_id = tat.id LEFT JOIN t_app tap ON tb.app_id = tap.id  where tb.promo_id > 0 and  1=1 ";*/
+	
+	private static final String SQL_GET_PROMO_CURR = "SELECT tb.promo_id as \"promoId\",tb.channel_id as \"channelId\",tb.agent_id as \"agentId\",tb.app_id as \"appId\",DATE_FORMAT(tb.ods_time,'%Y-%m-%d') as \"odsTime\",sum(tb.click) as \"click\",sum(tb.click_valid) as \"clickValid\",sum(tb.click_distinct) as \"clickDistinct\" ,sum(tb.click_distinct_day) AS \"clickDistinctDay\",sum(tb.active_distinct) as \"activeDistinct\" ,sum(tb.active_register) as \"activeRegister\",sum(tb.register_distinct) as \"registerDistinct\",sum(tb.register_distinct_day) as \"registerDistinctDay\",sum(tb.login_day) as \"loginDay\",sum(tb.new_fee) as \"newFee\",sum(tb.pay_device) as \"payDevice\",sum(tb.total_fee) as \"totalFee\",sum(tb.total_pay_device) as \"totalPayDevice\",tpo.name as \"promoName\",tcl.name as \"channelName\",tat.name as \"agentName\",tap.name as \"appName\" FROM  \n" +			
+			"t_promo_curr tb LEFT JOIN t_promo tpo ON tb.promo_id = tpo.id LEFT JOIN t_channelurl tcl ON tb.channel_id = tcl.id LEFT JOIN t_agent tat ON tb.agent_id = tat.id LEFT JOIN t_app tap ON tb.app_id = tap.id  where tb.promo_id > 0 and  1=1 ";
 	
 	
-	
+	private static final String SQL_GET_PROMO_NATURE =  "SELECT tap.name as \"appName\", promo_id as \"promoId\",channel_id as \"channelId\",agent_id as \"agentId\",app_id as \"appId\",ods_time,DATE_FORMAT(ods_time, '%Y-%m-%d') AS \"odsTime\",SUM(active_distinct) AS \"activeDistinct\","+
+			"SUM(register_distinct)as \"registerDistinct\",SUM(login_day)as \"loginDay\",SUM(total_fee)as \"totalFee\",SUM(total_pay_device)as \"totalPayDevice\" "+
+			"FROM t_promo_curr tpc LEFT JOIN t_app tap ON tpc.app_id = tap.id  WHERE promo_id = 0 GROUP BY odsTime,appId  ";
 	
 	
 	//注收比
@@ -74,14 +75,18 @@ public class TPromoCurrRepositoryImpl extends BaseRepository implements TPromoCu
 		//生成查询条件
 		SqlParams sqlParams = genListWhere(SQL_GET_PROMO_CURR, tPromoCurr, params);
 		//添加分页和排序
-		sqlParams = getPageableSql(sqlParams, pageIndex, pageSize, null, " \"id\" DESC ");
+		sqlParams = getPageableSql(sqlParams, pageIndex, pageSize, " odsTime DESC ", " \"id\" DESC ");
 		return getResultList(sqlParams);
 	}
 
 	public int getListCount(TPromoCurr tPromoCurr, Map<String, Object> params) {
 		//生成查询条件
-		SqlParams sqlParams = genListWhere(SQL_GET_LIST_COUNT, tPromoCurr, params);
-		
+		/*SqlParams sqlParams = new SqlParams();
+		sqlParams.querySql.append("SELECT COUNT(1) AS \"count\" FROM ( ");*/
+		SqlParams  sqlParams = genListWhere(SQL_GET_PROMO_CURR, tPromoCurr, params);
+	    sqlParams.querySql.append(") aa");
+	    sqlParams.querySql.insert(0, "SELECT COUNT(1) AS \"count\" FROM ( ");
+	    //System.out.println("aaaaaaaaaaaaa"+sqlParams.querySql);	
 		return getResultListTotalCount(sqlParams);
 	}
 	
@@ -90,6 +95,30 @@ public class TPromoCurrRepositoryImpl extends BaseRepository implements TPromoCu
 		// TODO Auto-generated method stub
 		SqlParams sqlParams = genEquipmentWhere(SQL_GET_WHERE, params);
 		return getResultList(sqlParams);
+	}
+	
+	
+	@Override
+	public List<Map<String, Object>> getNature(TPromoCurr tPromoCurr, Map<String, Object> params, int pageIndex, int pageSize) {
+		// TODO Auto-generated method stub
+		SqlParams sqlParams =genNatureWhere (SQL_GET_PROMO_NATURE,params);
+		
+		/*SqlParams sqlParams = new SqlParams();
+		sqlParams.querySql.append(SQL_GET_PROMO_NATURE);*/
+		sqlParams = getPageableSql(sqlParams, pageIndex, pageSize, " odsTime DESC ", " \"id\" DESC ");
+		return getResultList(sqlParams);
+	}
+	
+	
+	public int getNatureCount(TPromoCurr tPromoCurr, Map<String, Object> params) {
+		//生成查询条件
+		/*SqlParams sqlParams = new SqlParams();
+		sqlParams.querySql.append("SELECT COUNT(1) AS \"count\" FROM ( ");*/
+		SqlParams  sqlParams = genNatureWhere(SQL_GET_PROMO_NATURE, params);
+	    sqlParams.querySql.append(") aa");
+	    sqlParams.querySql.insert(0, "SELECT COUNT(1) AS \"count\" FROM ( ");
+	    //System.out.println("aaaaaaaaaaaaa"+sqlParams.querySql);	
+		return getResultListTotalCount(sqlParams);
 	}
 	
 	
@@ -110,21 +139,17 @@ public class TPromoCurrRepositoryImpl extends BaseRepository implements TPromoCu
 			sqlParams.valueList.add(tPromoCurr.getAppId());
 		}*/
 		
-		if (!StringUtils.isBlank(MapUtils.getString(params, "createDateBegin")) && !StringUtils.isBlank(MapUtils.getString(params, "createDateEnd"))) {
-            sqlParams.querySql.append(" AND odsTime between :createDateBegin AND :createDateEnd ");
-            sqlParams.paramsList.add("createDateBegin");
-            sqlParams.paramsList.add("createDateEnd");
-            sqlParams.valueList.add(MapUtils.getString(params, "createDateBegin") + " 00:00:00");
-            sqlParams.valueList.add(MapUtils.getString(params, "createDateEnd") + " 23:59:59");
-        }
+		
 		
 		if(!StringUtils.isBlank(MapUtils.getString(params, "dimensions"))){
 			if(MapUtils.getString(params, "dimensions").equals("odsTime")){
-				sqlParams.querySql.append("group by odsTime having 1 = 1");
+				sqlParams.querySql.append("group by odsTime,appId ");
 			}else if(MapUtils.getString(params, "dimensions").equals("promoId")){
-				sqlParams.querySql.append("group by promoId having 1 = 1");
+				sqlParams.querySql.append("group by promoId,appId ");
 			}else if (MapUtils.getString(params, "dimensions").equals("channelId")) {
-				sqlParams.querySql.append("group by channelId having 1 = 1");
+				sqlParams.querySql.append("group by channelId,appId ");
+			}else if(MapUtils.getString(params, "dimensions").equals("agentId")){
+				sqlParams.querySql.append("group by agentId,appId ");
 			}
 			
 			//sqlParams.paramsList.add("odsTime");
@@ -132,6 +157,14 @@ public class TPromoCurrRepositoryImpl extends BaseRepository implements TPromoCu
 			
 			
 		}
+		
+		if (!StringUtils.isBlank(MapUtils.getString(params, "createDateBegin")) && !StringUtils.isBlank(MapUtils.getString(params, "createDateEnd"))) {
+            sqlParams.querySql.append(" HAVING odsTime between :createDateBegin AND :createDateEnd ");
+            sqlParams.paramsList.add("createDateBegin");
+            sqlParams.paramsList.add("createDateEnd");
+            sqlParams.valueList.add(MapUtils.getString(params, "createDateBegin"));
+            sqlParams.valueList.add(MapUtils.getString(params, "createDateEnd"));
+        }
 		
 		
 		
@@ -168,6 +201,22 @@ public class TPromoCurrRepositoryImpl extends BaseRepository implements TPromoCu
 		
 		return sqlParams;
 	}
+	
+	private SqlParams genNatureWhere(String sql,Map<String, Object> params){
+		SqlParams sqlParams = new SqlParams();
+		sqlParams.querySql.append(sql);
+		if (!StringUtils.isBlank(MapUtils.getString(params, "createDateBegin")) && !StringUtils.isBlank(MapUtils.getString(params, "createDateEnd"))) {
+            sqlParams.querySql.append(" HAVING odsTime between :createDateBegin AND :createDateEnd ");
+            sqlParams.paramsList.add("createDateBegin");
+            sqlParams.paramsList.add("createDateEnd");
+            sqlParams.valueList.add(MapUtils.getString(params, "createDateBegin"));
+            sqlParams.valueList.add(MapUtils.getString(params, "createDateEnd") );
+        }
+		
+		return sqlParams;
+	}
+
+	
 
 	
 	

@@ -146,11 +146,11 @@ public interface TPromoCurrRepository extends JpaRepository<TPromoCurr, Long>, J
 			"WHERE a.promo_id = b.attribution_promo_id AND a.ods_time = b.attribution_time ",nativeQuery = true)
 	public void updatePromoAllPay(@Param("dateTime")String dateTime);
 	
-	//以下为统计自然量的修改操作
+	//以下为统计自然量的修改操作,INSERT INTO t_promo_curr(promo_id,channel_id,app_id,agent_id,ods_time) SELECT tb.id,tb.channel_id,tb.app_id,tb.anent_id,DATE_FORMAT(:dateTime,'%y-%m-%d %H:%i') from t_promo tb
 	@Transactional
 	@Modifying(clearAutomatically = true)
 	//@Query(value = "INSERT INTO t_promo_curr SET ods_time = :dateTime")
-	@Query(value = "INSERT INTO t_promo_curr(promo_id,channel_id,app_id,agent_id,ods_time) value (0,0,0,0,DATE_FORMAT(:dateTime,'%y-%m-%d %H:%i'))",nativeQuery = true)
+	@Query(value = "INSERT INTO t_promo_curr(promo_id,channel_id,app_id,agent_id,ods_time) SELECT 0,0,tb.id ,0,DATE_FORMAT(:dateTime,'%y-%m-%d %H:%i') from t_app tb",nativeQuery = true)
 	public void insertNature(@Param("dateTime")String dateTime);
 	
 	//更新排重激活设备数，当天激活且排重设备数
@@ -169,12 +169,12 @@ public interface TPromoCurrRepository extends JpaRepository<TPromoCurr, Long>, J
 	//更新排重激活设备数，当天激活且注册设备数
 			@Transactional
 			@Modifying(clearAutomatically = true)
-			@Query(value = "UPDATE t_promo_curr a,(SELECT COUNT(DISTINCT tas.ip) as 'active_distinct',tas.attribution_promo_id as 'attribution_promo_id',tas.attribution_time as 'attribution_time' \n" +
+			@Query(value = "UPDATE t_promo_curr a,(SELECT COUNT(tas.ip) as 'active_distinct',app_id,tas.attribution_promo_id as 'attribution_promo_id',tas.attribution_time as 'attribution_time' \n" +
 					"FROM t_app_startup tas \n" +
 					"WHERE tas.when1 between date_add(:dateTime, interval - 5 minute) and :dateTime \n" +
-					"AND tas.attribution_promo_id is null) as b \n" +
+					"AND tas.attribution_promo_id is null group by app_id) as b \n" +
 					"SET a.active_distinct = b.active_distinct \n" +
-					"WHERE a.promo_id = 0 AND a.ods_time = DATE_FORMAT(:dateTime,'%y-%m-%d %H:%i') ",nativeQuery = true)
+					"WHERE a.promo_id = 0 AND a.ods_time = DATE_FORMAT(:dateTime,'%y-%m-%d %H:%i') AND a.app_id = b.app_id ",nativeQuery = true)
 			public void updateNaPromoActiveDis(@Param("dateTime")String dateTime);
 //			
 //					@Transactional
@@ -195,20 +195,20 @@ public interface TPromoCurrRepository extends JpaRepository<TPromoCurr, Long>, J
 		//更新按天排重注册设备数，排重注册设备数
 		@Transactional
 		@Modifying(clearAutomatically = true)
-		@Query(value = "UPDATE t_promo_curr a ,(SELECT COUNT(DISTINCT ip,DATE_FORMAT(t_app_register.when1,'%y-%m-%d')) as 'register_distinct_day',COUNT(DISTINCT ip) as 'register_distinct',attribution_promo_id ,attribution_time FROM t_app_register \n" +
-				"WHERE t_app_register.when1 between date_add(:dateTime, interval - 5 minute) and :dateTime AND t_app_register.attribution_promo_id is null )b\n" +
-				"SET a.register_distinct_day = b.register_distinct_day ,a.register_distinct = b.register_distinct\n" +
-				"WHERE a.promo_id = 0 AND a.ods_time = DATE_FORMAT(:dateTime,'%y-%m-%d %H:%i')",nativeQuery = true)
+		@Query(value = "UPDATE t_promo_curr a ,(SELECT COUNT(ip) as 'register_distinct',app_id,attribution_promo_id ,attribution_time FROM t_app_register \n" +
+				"WHERE t_app_register.when1 between date_add(:dateTime, interval - 5 minute) and :dateTime AND t_app_register.attribution_promo_id is null group by app_id )b\n" +
+				"SET a.register_distinct = b.register_distinct\n" +
+				"WHERE a.promo_id = 0 AND a.ods_time = DATE_FORMAT(:dateTime,'%y-%m-%d %H:%i') AND a.app_id = b.app_id",nativeQuery = true)
 		public void updateNaPromoRegister(@Param("dateTime")String dateTime);
 		
 	
 		//更新按天排重登录设备数
 		@Transactional
 		@Modifying(clearAutomatically = true)
-		@Query(value = "UPDATE t_promo_curr a ,(SELECT COUNT(DISTINCT ip,DATE_FORMAT(t_app_login.when1,'%y-%m-%d')) as 'login_day',attribution_promo_id ,attribution_time FROM t_app_login \n" +
-				"WHERE t_app_login.when1 between date_add(:dateTime, interval - 5 minute) and :dateTime AND t_app_login.attribution_promo_id is null)b\n" +
+		@Query(value = "UPDATE t_promo_curr a ,(SELECT COUNT(ip) as 'login_day',app_id,attribution_promo_id ,attribution_time FROM t_app_login \n" +
+				"WHERE t_app_login.when1 between date_add(:dateTime, interval - 5 minute) and :dateTime AND t_app_login.attribution_promo_id is null group by app_id)b\n" +
 				"SET a.login_day = b.login_day\n" +
-				"WHERE a.promo_id = 0 AND a.ods_time = DATE_FORMAT(:dateTime,'%y-%m-%d %H:%i')",nativeQuery = true)
+				"WHERE a.promo_id = 0 AND a.ods_time = DATE_FORMAT(:dateTime,'%y-%m-%d %H:%i') AND a.app_id = b.app_id",nativeQuery = true)
 		public void updateNaPromoLogin(@Param("dateTime")String dateTime);
 		
 		
@@ -227,10 +227,10 @@ public interface TPromoCurrRepository extends JpaRepository<TPromoCurr, Long>, J
 		//更新总付费，总付费设备数
 		@Transactional
 		@Modifying(clearAutomatically = true)
-		@Query(value = "UPDATE t_promo_curr a,(SELECT SUM(free) as 'total_fee',COUNT(DISTINCT ip) as 'total_pay_device',attribution_promo_id,attribution_time\n" +
-				" from t_app_pay tap WHERE tap.when1 between date_add(:dateTime, interval - 5 minute) and :dateTime AND tap.attribution_promo_id is null)b \n" +
+		@Query(value = "UPDATE t_promo_curr a,(SELECT SUM(free) as 'total_fee',app_id,COUNT(ip) as 'total_pay_device',attribution_promo_id,attribution_time\n" +
+				" from t_app_pay tap WHERE tap.when1 between date_add(:dateTime, interval - 5 minute) and :dateTime AND tap.attribution_promo_id is null group by app_id)b \n" +
 				"SET a.total_fee = b.total_fee,a.total_pay_device = b.total_pay_device\n" +
-				"WHERE a.promo_id = 0 AND a.ods_time = DATE_FORMAT(:dateTime,'%y-%m-%d %H:%i')",nativeQuery = true)
+				"WHERE a.promo_id = 0 AND a.ods_time = DATE_FORMAT(:dateTime,'%y-%m-%d %H:%i') AND a.app_id = b.app_id",nativeQuery = true)
 		public void updateNaPromoAllPay(@Param("dateTime")String dateTime);
 	
 	

@@ -5,6 +5,8 @@ package com.adpf.tracking.repository.custom;
 
 import java.util.List;
 import java.util.Map;
+
+import org.apache.hadoop.hive.metastore.api.ThriftHiveMetastore.Processor.list_privileges;
 import org.springframework.data.repository.NoRepositoryBean;
 import com.adpf.tracking.entity.TPromoCurr;
 
@@ -37,4 +39,10 @@ public interface TPromoCurrRepositoryCustom {
 	public int getListCount(TPromoCurr tPromoCurr, Map<String, Object> params);
 	
 	public List<Map<String, Object>>getEquipmentFrom(Map<String, Object> params);
+	
+	public List<Map<String, Object>>getNature(TPromoCurr tPromoCurr, Map<String, Object> params, int pageIndex, int pageSize);
+	
+	public int getNatureCount(TPromoCurr tPromoCurr, Map<String, Object> params);
+	
+	
 }

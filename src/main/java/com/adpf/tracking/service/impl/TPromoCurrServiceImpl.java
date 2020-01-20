@@ -32,8 +32,8 @@ public class TPromoCurrServiceImpl implements TPromoCurrService {
 	@Override
 	public JSONObject getList(Pageable page, TPromoCurr tPromoCurr, Map<String, Object> params) {
 		List<Map<String, Object>> list = tPromoCurrRepository.getList(tPromoCurr, params, page.getPageNumber(), page.getPageSize());
-		//int count = tPromoCurrRepository.getListCount(tPromoCurr, params);
-		return RestfulRetUtils.getRetSuccessWithPage(list, 1000);
+		int count = tPromoCurrRepository.getListCount(tPromoCurr, params);
+		return RestfulRetUtils.getRetSuccessWithPage(list, count);
 		//return RestfulRetUtils.getRetSuccess(list);
 	}
 
@@ -71,6 +71,14 @@ public class TPromoCurrServiceImpl implements TPromoCurrService {
 		// TODO Auto-generated method stub
 		List<Map<String, Object>>list = tPromoCurrRepository.getEquipmentFrom(params);
 		return RestfulRetUtils.getRetSuccess(list);
+	}
+	
+	@Override
+	public JSONObject getNature(Pageable page, TPromoCurr tPromoCurr, Map<String, Object> params) {
+		List<Map<String, Object>> list = tPromoCurrRepository.getNature(tPromoCurr, params, page.getPageNumber(), page.getPageSize());
+		int count = tPromoCurrRepository.getNatureCount(tPromoCurr, params);
+		return RestfulRetUtils.getRetSuccessWithPage(list, count);
+		//return RestfulRetUtils.getRetSuccess(list);
 	}
 
 }
